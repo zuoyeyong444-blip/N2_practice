@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLPT N2 模擬クイズ（30問）</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .quiz-container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 650px;
+            width: 100%;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 20px;
+            color: #2c3e50;
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background-color: #3182ce;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .question-box {
+            font-size: 17px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .question-box u {
+            text-decoration: underline;
+            font-weight: bold;
+            color: #2b6cb0;
+            text-underline-offset: 4px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #f7fafc;
+            border-color: #cbd5e0;
+        }
+        .option-btn.correct {
+            background-color: #c6f6d5;
+            border-color: #48bb78;
+            color: #22543d;
+            font-weight: bold;
+        }
+        .option-btn.wrong {
+            background-color: #fed7d7;
+            border-color: #f56565;
+            color: #742a2a;
+        }
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+            display: none;
+        }
+        .feedback.correct-style {
+            background-color: #f0fff4;
+            border-left: 4px solid #48bb78;
+        }
+        .feedback.wrong-style {
+            background-color: #fff5f5;
+            border-left: 4px solid #f56565;
+        }
+        .action-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .next-btn {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+        }
+        .next-btn:hover {
+            background-color: #2b6cb0;
+        }
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #3182ce;
+            margin: 20px 0;
+        }
+        .restart-btn {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .restart-btn:hover {
+            background-color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-screen">
+        <h1 id="quiz-title">JLPT N2 クイズ (1/30)</h1>
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="question" class="question-box"></div>
+        <div id="options" class="options"></div>
+        <div id="feedback" class="feedback"></div>
+        <div class="action-container">
+            <button id="next-btn" class="next-btn" onclick="nextQuestion()">次の問題へ</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="result-screen">
+        <h1>結果発表</h1>
+        <p>お疲れ様でした！あなたのスコアは...</p>
+        <div id="score" class="score">0 / 30</div>
+        <p id="comment"></p>
+        <button class="restart-btn" onclick="restartQuiz()">もう一度挑戦する</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    // 1-10: 最初の10問
+    { q: "【文字・語彙：漢字読み】<br>会議での発言には、自分の行動に対する<u>粘り</u>が必要だ。", a: ["ねまり", "ねばり", "はまり", "はばり"], c: 1, e: "粘り（ねばり）：あきらめずに粘り強く続ける強さのこと。" },
+    { q: "【文字・語彙：漢字読み】<br>彼は新しいプロジェクトのリーダーに<u>抜擢</u>された。", a: ["ばってき", "はつてき", "ばくたく", "はつたく"], c: 0, e: "抜擢（ばってき）：多くの人の中から優秀な人を引き抜いて用いること。" },
+    { q: "【文字・語彙：漢字読み】<br>景気の低迷により、中小企業の倒産が<u>相次いで</u>いる。", a: ["あいいついで", "そうついで", "あいついで", "そういついで"], c: 2, e: "相次いで（あいついで）：物事が次々と続けて起こる様子。" },
+    { q: "【文字・語彙：文脈規定】<br>彼はとても＿＿＿が良くて、どんな人ともすぐに仲良くなれる。", a: ["人当たり", "人見知り", "人任せ", "人通り"], c: 0, e: "「人当たりが良い」で、他人に対する態度や受ける印象が良いという意味になります。" },
+    { q: "【文字・語彙：文脈規定】<br>予算の都合上、計画を一部＿＿＿せざるを得なかった。", a: ["処置", "修正", "修復", "応急"], c: 1, e: "修正（しゅうせい）：不十分・不適当なところを直して正しくすること。計画や予算に使用します。" },
+    { q: "【文字・語彙：文脈規定】<br>決勝戦で負けた悔しさを＿＿＿に、次の大会に向けて猛練習を始めた。", a: ["歯止め", "バネ", "枠", "的な"], c: 1, e: "「悔しさをバネにする」は、悔しさや失敗を跳躍のエネルギー（原動力）に変えるという比喩表現。" },
+    { q: "【文字・語彙：類義語】<br>下線の言葉に意味が最も近いものは？<br>この小説のストーリーは<u>ありふれている</u>。", a: ["複雑だ", "珍しい", "どこにでもある", "感動的だ"], c: 2, e: "ありふれている：どこにでもある平凡なもの、珍しくないもの。" },
+    { q: "【文字・語彙：類義語】<br>下線の言葉に意味が最も近いものは？<br>突然の質問に、彼女は<u>うろたえて</u>しまった。", a: ["怒って", "慌てて", "呆れて", "黙って"], c: 1, e: "うろたえる：不意を突かれてどうしていいか分からず、慌てて狼狽すること。" },
+    { q: "【文字・語彙：用法】<br>「わずらわしい」の使い方が最も正しいものは？", a: ["彼の説明はわずらわしいので、とても理解しやすかった。", "都会のわずらわしい人間関係から離れて、田舎で暮らしたい。", "この部屋は狭くて、家具を置くとわずらわしい。", "彼はいつもわずらわしい服を着ていて、おしゃれだ。"], c: 1, e: "わずらわしい：面倒で嫌な気持ちになること。「わずらわしい人間関係・手続き」などでよく使います。" },
+    { q: "【文字・語彙：用法】<br>「痛切」の使い方が最も正しいものは？", a: ["先生からの注意を痛切に受け止め、態度を改めた。", "彼の発言には、相手を傷つける痛切なトーンがあった。", "留学して、自分の語学力不足を痛切に感じた。", "この包丁はよく研がれているので、痛切によく切れる。"], c: 2, e: "痛切（つうせつ）：身にしみて強く深く感じる様子。「痛切に感じる / 痛切に思う」が定型パターンです。" },
+    
+    // 11-20: 文法10問
+    { q: "【文法：形式判断】<br>最近、仕事が忙しくて休みが取れない。旅行＿＿＿、週末に家で休むことさえできない。", a: ["どころか", "ばかりか", "反面", "を契機に"], c: 0, e: "「〜どころか」：〜という程度ではなく、実際はそれより遥かにひどい状態だ。（旅行なんてとんでもない、休むことすらできない）。" },
+    { q: "【文法：形式判断】<br>医者にタバコを辞めるよう注意された＿＿＿、なかなか禁煙できない。", a: ["ものの", "ものなら", "ついでに", "につれて"], c: 0, e: "「〜ものの」：〜というのは事実だが、実際は（予想と反して）…だ。逆接を表します。" },
+    { q: "【文法：形式判断】<br>留学生活は大変なこともあるが、親のありがたさを知る＿＿＿良い機会だと思う。", a: ["上での", "に際して", "を巡る", "にとっての"], c: 3, e: "「〜にとっての」：「〜の立場から見て」という意味の「にとって」が後ろの名詞（良い機会）を修飾する形。" },
+    { q: "【文法：形式判断】<br>台風が近づいている。今夜から明日に＿＿＿大雨に警戒が必要だ。", a: ["対して", "かけて", "とともに", "を通じて"], c: 1, e: "「〜から〜にかけて」：およその時間的・空間的な範囲を示します。" },
+    { q: "【文法：形式判断】<br>締め切りは明日だから、徹夜してでも今日中にレポートを書き上げ＿＿＿。", a: ["ないわけにはいかない", "わけがない", "ざるを得ない", "るべきではない"], c: 0, e: "「〜ないわけにはいかない」：義務や状況的に「どうしても〜しなければならない」という強い二重否定。" },
+    { q: "【文法：形式判断】<br>どんなに親しい友人＿＿＿、最低限の礼儀は守るべきだ。", a: ["だからといって", "であれ", "といっても", "に応じて"], c: 1, e: "「〜であれ」：たとえ〜であっても、何であっても関係なく。後ろには当然すべきことや不変の事実がきます。" },
+    { q: "【文法：並び替え】★に入るものは？<br>料理のおいしいあの店は、＿＿＿ ＿＿＿ ＿★＿ ＿＿＿ 予約が取れない。<br>1.日曜日　2.平日　3.となると　4.ならともかく", a: ["1", "2", "3", "4"], c: 2, e: "正解の並び：平日(2) ならともかく(4) 日曜日(1) となると(3)<br>「平日ならまだしも、日曜日という状況になると〜」という意味になります。" },
+    { q: "【文法：並び替え】★に入るものは？<br>彼は子供のころから努力家だった。今回の＿＿＿ ＿＿＿ ＿★＿ ＿＿＿ ない。<br>1.不思議で　2.コンテストでの　3.優勝も　4.は", a: ["1", "2", "3", "4"], c: 0, e: "正解の並び：コンテストでの(2) 優勝も(3) 不思議で(1) は(4) ない。<br>「〜不思議ではない」で「当然だ」という意味のフレーズになります。" },
+    { q: "【文法：並び替え】★に入るものは？<br>山田さんは昨日、あんなに「行きたくない」と＿＿＿ ＿＿＿ ＿★＿ ＿＿＿ 参加している。<br>1.くせに　2.言っていた　3.パーティーに　4.今日は", a: ["1", "2", "3", "4"], c: 3, e: "正解の並び：言っていた(2) くせに(1) 今日は(4) パーティーに(3) 参加している。<br>「〜くせに」は不満や非難を込めて「〜なのに」と言いたいときに使います。" },
+    { q: "【文法：並び替え】★に入るものは？<br>どんなに英語の勉強を＿＿＿ ＿＿＿ ＿★＿ ＿＿＿ 上達しない。<br>1.話す機会が　2.なければ　3.実際に　4.したところで", a: ["1", "2", "3", "4"], c: 0, e: "正解の並び：したところで(4) 実際に(3) 話す機会が(1) なければ(2) 上達しない。<br>「〜したところで」は「たとえ〜しても（無駄だ）」という意味。その後に条件の「〜なければ」が続きます。" },
+    
+    // 21-30: 追加の10問
+    { q: "【文字・語彙：漢字読み】<br>今回の不祥事について、社長が公式の場で<u>謝罪</u>した。", a: ["かんしゃ", "しゃざい", "ちゅうざい", "べんめい"], c: 1, e: "謝罪（しゃざい）：自分の過ちや罪を認めて、相手に深くわびること。" },
+    { q: "【文字・語彙：漢字読み】<br>彼は非常に<u>器用</u>で、何でも自分で修理してしまう。", a: ["きよう", "ぎよう", "きりょう", "ぎりょう"], c: 0, e: "器用（きよう）：手先が細かくよく動くこと、または要領よく物事をこなすこと。" },
+    { q: "【文字・語彙：文脈規定】<br>トラブルの原因を＿＿＿究明し、再発防止策を立てる必要がある。", a: ["徹底的に", "続々と", "だんだんと", "堂々と"], c: 0, e: "徹底的に（てっていてきに）：中途半端にせず、底の底まで厳しく、完璧に行う様子。" },
+    { q: "【文字・語彙：文脈規定】<br>先日の台風によって、この地域の農業は大きな＿＿＿を受けた。", a: ["負傷", "害", "打撃", "故障"], c: 2, e: "打撃（だげき）：深刻なダメージや痛手のこと。「大きな打撃を受ける/与える」の形で非常によく使います。" },
+    { q: "【文字・語彙：用法】<br>「妥協」の使い方が最も正しいものは？", a: ["何度も話し合って、お互いに妥協できる点を見つけた。", "彼の意見はとても妥協が良くて、すぐに賛成した。", "風邪を引かないように、体調管理に妥協してください。", "この製品は品質が高く、どこにも妥協する場所がない。"], c: 0, e: "妥協（だきょう）：対立している双方が、互いに一部を譲り合って一致点（解決策）を見つけること。" },
+    { q: "【文法：形式判断】<br>彼は周囲の反対＿＿＿、自分の意志を貫いて会社を辞め、起業した。", a: ["をもとに", "をおいて", "を押し切って", "をはじめとして"], c: 2, e: "「〜を押し切って」：反対意見や困難な状況を力強く退けて、強引に自分の行動を通すこと。" },
+    { q: "【文法：形式判断】<br>N2の試験に合格できたのは、毎日遅くまで熱心に指導してくださった先生＿＿＿です。", a: ["のおかげ", "のせい", "につき", "次第"], c: 0, e: "「〜のおかげ」：良い結果になった原因に対する、感謝を込めた表現。逆に悪い結果なら「のせい」になります。" },
+    { q: "【文法：形式判断】<br>新しいスマートフォンを買った＿＿＿、機能が多すぎて使い方がよく分からない。", a: ["ことだから", "反面", "ものものの", "以上は"], c: 2, e: "「〜ものの」：「買ったというのは事実だが、現実は難しくて困っている」という、前件の事実に対する逆接表現。" },
+    { q: "【文法：並び替え】★に入るものは？<br>どんなに素晴らしい計画＿＿＿、＿＿＿ ＿＿＿ ＿★＿ ＿＿＿ 意味がない。<br>1.実行に　2.移さなければ　3.であっても　4.それを", a: ["1", "2", "3", "4"], c: 0, e: "正解の並び：であっても(3) それを(4) 実行に(1) 移さなければ(2) 意味がない。<br>「計画であっても（たとえ計画でも）、それを実行に移す（行動にする）ことをしなければ意味がない」となります。" },
+    { q: "【文法：並び替え】★に入るものは？<br>鈴木さんは、＿＿＿ ＿＿＿ ＿★＿ ＿＿＿ 会社を休むはずがない。<br>1.無断で　2.連絡も　3.なしに　4.まじめな彼女が", a: ["1", "2", "3", "4"], c: 2, e: "正解の並び：まじめな彼女が(4) 連絡も(2) なしに(3) 無断で(1) 会社を休むはずがない。<br>「〜なしに（〜がない状態で）」という意味の表現を使い、「連絡もせず無断で」という文脈を作ります。" }
+];
+
+let currentQuestionIndex = 0;
+let score = 0;
+
+function loadQuestion() {
+    const currentQuestion = quizData[currentQuestionIndex];
+    
+    // タイトルと進捗バーの更新
+    document.getElementById("quiz-title").innerHTML = `JLPT N2 クイズ (${currentQuestionIndex + 1} / ${quizData.length})`;
+    const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+    document.getElementById("progress-bar").style.width = `${progressPercent}%`;
+
+    // 問題文の表示
+    document.getElementById("question").innerHTML = `${currentQuestionIndex + 1}. ${currentQuestion.q}`;
+    
+    // 選択肢の表示
+    const optionsContainer = document.getElementById("options");
+    optionsContainer.innerHTML = "";
+    
+    currentQuestion.a.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "option-btn";
+        button.innerHTML = option;
+        button.onclick = () => selectOption(index);
+        optionsContainer.appendChild(button);
+    });
+
+    // フィードバックと次へボタンの非表示
+    document.getElementById("feedback").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+}
+
+function selectOption(selectedIndex) {
+    const currentQuestion = quizData[currentQuestionIndex];
+    const optionButtons = document.querySelectorAll(".option-btn");
+    const feedbackBox = document.getElementById("feedback");
+
+    // 全ボタンを選択不可にする
+    optionButtons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === currentQuestion.c) {
+            button.classList.add("correct"); // 正解を緑に
+        }
+    });
+
+    if (selectedIndex === currentQuestion.c) {
+        score++;
+        feedbackBox.innerHTML = `<strong>⭕ 正解！</strong><br>${currentQuestion.e}`;
+        feedbackBox.className = "feedback correct-style";
+    } else {
+        optionButtons[selectedIndex].classList.add("wrong"); // 選んだ誤答を赤に
+        feedbackBox.innerHTML = `<strong>❌ 不正解... (正解は ${currentQuestion.c + 1})</strong><br>${currentQuestion.e}`;
+        feedbackBox.className = "feedback wrong-style";
+    }
+
+    feedbackBox.style.display = "block";
+    document.getElementById("next-btn").style.display = "block";
+}
+
+function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < quizData.length) {
+        loadQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById("quiz-screen").style.display = "none";
+    document.getElementById("result-screen").style.display = "block";
+    
+    const scoreBox = document.getElementById("score");
+    scoreBox.innerHTML = `${score} / ${quizData.length}`;
+    
+    const commentBox = document.getElementById("comment");
+    const rate = score / quizData.length;
+    if (rate === 1) {
+        commentBox.innerHTML = "素晴らしい！満点です！N2合格間違いなしですね！";
+    } else if (rate >= 0.8) {
+        commentBox.innerHTML = "高得点です！この調子で本番も頑張りましょう！";
+    } else if (rate >= 0.5) {
+        commentBox.innerHTML = "半分以上正解です。間違えた部分の解説をよく読んで復習しましょう！";
+    } else {
+        commentBox.innerHTML = "伸び代がたくさんあります！何度も解き直して覚えていきましょう。";
+    }
+}
+
+function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    document.getElementById("quiz-screen").style.display = "block";
+    document.getElementById("result-screen").style.display = "none";
+    loadQuestion();
+}
+
+// アプリ起動時に最初の問題を読み込む
+window.onload = loadQuestion;
+</script>
+
+</body>
+</html>
